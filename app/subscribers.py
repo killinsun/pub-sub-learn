@@ -1,5 +1,5 @@
 import abc
-from typing import Optional
+from typing import Optional, Any
 
 from pydantic import EmailStr
 
@@ -20,7 +20,9 @@ class Subscriber(abc.ABC):
 
 
 class MailSubscriber(Subscriber):
-    def __init__(self, event_type: str, mail_to: list[EmailStr], mail_client):
+    def __init__(
+        self, event_type: str, mail_to: list[EmailStr], mail_client: Any | None = None
+    ):
         if len(mail_to) == 0:
             raise ValueError("mail_to cannot be empty")
 
@@ -38,9 +40,15 @@ class MailSubscriber(Subscriber):
         }
 
     def notify(self, title: str, message: str):
+        if self.mail_client is None:
+            raise ValueError("Mail client is not set")
+
         self.mail_client.send_mail(
             mail_from="no-reply@example.com",
             mail_to=self.mail_to,
             subject=title,
             body=message,
         )
+
+    def set_client(self, client: Any):
+        self.mail_client = client
