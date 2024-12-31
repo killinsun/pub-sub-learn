@@ -1,10 +1,13 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, EmailStr
 from loguru import logger
 
+from app.dummy_mail_client import DummyMailClient
+from app.subscribers import Subscriber, MailSubscriber
+
 app = FastAPI()
 
-subscribers: dict[str, list[EmailStr]] = {"new_article": []}
+subscribers: dict[str, list[Subscriber]] = {"new_article": []}
 
 
 class Subscriber(BaseModel):
@@ -22,9 +25,17 @@ async def subscribe(subscriber: Subscriber):
     logger.info(f"Subscribing {subscriber.email} to {subscriber.event_type}")
 
     if subscriber.event_type not in subscribers:
-        raise ValueError("Invalid event type")
+        raise HTTPException(status_code=400, detail="Invalid event type")
 
-    subscribers[subscriber.event_type].append(subscriber.email)
+    mail_client = DummyMailClient()
+
+    subscribers[subscriber.event_type].append(
+        MailSubscriber(mail_client=mail_client, mail_to=[subscriber.email])
+    )
+
+    logger.info(
+        f"Mail subscribers for {subscriber.event_type}: {len(subscribers[subscriber.event_type])}"
+    )
 
     return {"email": subscriber.email, "event_type": subscriber.event_type}
 
@@ -37,7 +48,7 @@ async def publish(event: Event):
 
     if event.event_type in subscribers:
         for subscriber in subscribers[event.event_type]:
-            logger.info(f"Sending email to {subscriber}")
+            subscriber.notify(title="New article", message="Check out our new article!")
     else:
         logger.info("No subscribers for this event")
 
