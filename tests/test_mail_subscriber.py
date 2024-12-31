@@ -11,7 +11,6 @@ class TestMailSubscriber:
         subscriber = MailSubscriber(
             event_type="new_article",
             mail_to=["test@example.com"],
-            mail_client=None,
         )
 
         assert subscriber.get_event_type() == "new_article"
@@ -20,7 +19,6 @@ class TestMailSubscriber:
         subscriber = MailSubscriber(
             event_type="new_article",
             mail_to=["test@example.com"],
-            mail_client=None,
         )
 
         assert subscriber.get_subscriber_info() == {
@@ -47,7 +45,5 @@ class TestMailSubscriber:
         )
 
     def test_notify__raises_exception_when_mail_to_is_empty(self):
-        mock_mail_client = MagicMock()
-
         with pytest.raises(ValueError):
-            MailSubscriber(mail_to=[], mail_client=mock_mail_client)
+            MailSubscriber(mail_to=[], event_type="new_article")
