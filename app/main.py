@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel, EmailStr
 from loguru import logger
 
@@ -8,6 +8,10 @@ from app.subscribers import Subscriber, MailSubscriber
 app = FastAPI()
 
 subscribers: dict[str, list[Subscriber]] = {"new_article": []}
+
+
+def get_mail_client() -> DummyMailClient:
+    return DummyMailClient()
 
 
 class Subscriber(BaseModel):
@@ -21,13 +25,13 @@ class Event(BaseModel):
 
 
 @app.post("/subscribe")
-async def subscribe(subscriber: Subscriber):
+async def subscribe(
+    subscriber: Subscriber, mail_client: DummyMailClient = Depends(get_mail_client)
+):
     logger.info(f"Subscribing {subscriber.email} to {subscriber.event_type}")
 
     if subscriber.event_type not in subscribers:
         raise HTTPException(status_code=400, detail="Invalid event type")
-
-    mail_client = DummyMailClient()
 
     subscribers[subscriber.event_type].append(
         MailSubscriber(mail_client=mail_client, mail_to=[subscriber.email])
