@@ -8,4 +8,5 @@ dependencies = [
     "black>=24.10.0",
     "fastapi[standard]>=0.115.6",
     "loguru>=0.7.3",
+    "pytest>=8.3.4",
 ]
