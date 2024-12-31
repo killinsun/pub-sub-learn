@@ -34,7 +34,11 @@ async def subscribe(
         raise HTTPException(status_code=400, detail="Invalid event type")
 
     subscribers[subscriber.event_type].append(
-        MailSubscriber(mail_client=mail_client, mail_to=[subscriber.email])
+        MailSubscriber(
+            event_type=subscriber.event_type,
+            mail_client=mail_client,
+            mail_to=[subscriber.email],
+        )
     )
 
     logger.info(
