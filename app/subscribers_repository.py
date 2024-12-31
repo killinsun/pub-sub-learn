@@ -1,6 +1,6 @@
 import json
 
-from app.subscribers import Subscriber
+from app.subscribers import Subscriber, MailSubscriber
 
 
 def get_subscribers_dict(subscribers: list[Subscriber]) -> list[dict]:
@@ -36,3 +36,21 @@ class SubscribersRepository:
                 )
 
             json.dump(json_to_save, file, indent=2)
+
+    def restore_from_file(self) -> dict[str, list[Subscriber]]:
+        with open(self.path, "r") as file:
+            data = json.load(file)
+
+        subscribers = {}
+        for event in data["all_subscribers"]:
+            subscribers[event["event_type"]] = []
+            for subscriber in event["subscribers"]:
+                subscribers[event["event_type"]].append(
+                    MailSubscriber(
+                        event_type=event["event_type"],
+                        mail_to=subscriber["notification"]["email_to"],
+                        mail_client=None,
+                    )
+                )
+
+        return subscribers
