@@ -12,12 +12,10 @@ class TestSubscribersRepository:
             "new_article": [
                 MailSubscriber(
                     mail_to=["test@example.com"],
-                    mail_client=None,
                     event_type="new_article",
                 ),
                 MailSubscriber(
                     mail_to=["test2@example.com"],
-                    mail_client=None,
                     event_type="new_article",
                 ),
             ],
@@ -62,12 +60,10 @@ class TestSubscribersRepository:
             "new_article": [
                 MailSubscriber(
                     mail_to=["test@example.com"],
-                    mail_client=None,
                     event_type="new_article",
                 ),
                 MailSubscriber(
                     mail_to=["test2@example.com"],
-                    mail_client=None,
                     event_type="new_article",
                 ),
             ],

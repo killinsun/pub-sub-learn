@@ -15,14 +15,6 @@ class TestSubscribeRoot:
 
         assert response.status_code == 200
 
-    def test_subscribe__returns_400_when_invalid_event_type(self):
-        response = client.post(
-            "/subscribe",
-            json={"email": "test@example.com", "event_type": "invalid_event_type"},
-        )
-
-        assert response.status_code == 400
-
 
 class TestPublishRoot:
 

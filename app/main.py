@@ -1,20 +1,15 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI
 from pydantic import BaseModel, EmailStr
 from loguru import logger
 
-from app.dummy_mail_client import DummyMailClient
-from app.subscribers import Subscriber, MailSubscriber
+from app.infrastructure import MailNotificationInfra
+from app.notification_service import NotificationService
+from app.subscribers import MailSubscriber
 
 app = FastAPI()
 
-subscribers: dict[str, list[Subscriber]] = {"new_article": []}
 
-
-def get_mail_client() -> DummyMailClient:
-    return DummyMailClient()
-
-
-class Subscriber(BaseModel):
+class EmailSubscribeRequest(BaseModel):
     email: EmailStr
     event_type: str
 
@@ -24,40 +19,35 @@ class Event(BaseModel):
     data: dict
 
 
+notification_service = NotificationService()
+mail_infra = MailNotificationInfra()
+notification_service.register_infrastructure(
+    subscriber_type="MailSubscriber", infrastructure=mail_infra
+)
+
+
 @app.post("/subscribe")
-async def subscribe(
-    subscriber: Subscriber, mail_client: DummyMailClient = Depends(get_mail_client)
-):
-    logger.info(f"Subscribing {subscriber.email} to {subscriber.event_type}")
+async def subscribe(subscribe_req: EmailSubscribeRequest):
+    logger.info(f"Subscribing {subscribe_req.email} to {subscribe_req.event_type}")
 
-    if subscriber.event_type not in subscribers:
-        raise HTTPException(status_code=400, detail="Invalid event type")
-
-    subscribers[subscriber.event_type].append(
-        MailSubscriber(
-            event_type=subscriber.event_type,
-            mail_client=mail_client,
-            mail_to=[subscriber.email],
-        )
+    mail_subscriber = MailSubscriber(
+        event_type=subscribe_req.event_type, mail_to=[subscribe_req.email]
+    )
+    notification_service.add_subscriber(
+        event_type=subscribe_req.event_type, subscriber=mail_subscriber
     )
 
-    logger.info(
-        f"Mail subscribers for {subscriber.event_type}: {len(subscribers[subscriber.event_type])}"
-    )
-
-    return {"email": subscriber.email, "event_type": subscriber.event_type}
+    return {"email": subscribe_req.email, "event_type": subscribe_req.event_type}
 
 
 @app.post("/publish")
 async def publish(event: Event):
     logger.info(f"Publishing {event.event_type} event")
     logger.debug(event.data)
-    logger.debug(subscribers)
 
-    if event.event_type in subscribers:
-        for subscriber in subscribers[event.event_type]:
-            subscriber.notify(title="New article", message="Check out our new article!")
-    else:
-        logger.info("No subscribers for this event")
+    notification_service.notify(
+        title="New article published",
+        message=f"New article published: {event.data}",
+    )
 
     return {"message": "Event published"}
