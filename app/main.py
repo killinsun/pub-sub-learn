@@ -1,17 +1,12 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI
 from pydantic import BaseModel, EmailStr
 from loguru import logger
 
-from app.dummy_mail_client import DummyMailClient
 from app.infrastructure import MailNotificationInfra
 from app.notification_service import NotificationService
 from app.subscribers import MailSubscriber
 
 app = FastAPI()
-
-
-def get_mail_client() -> DummyMailClient:
-    return DummyMailClient()
 
 
 class EmailSubscribeRequest(BaseModel):
