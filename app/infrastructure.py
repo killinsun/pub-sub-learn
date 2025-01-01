@@ -15,8 +15,12 @@ class NotificationInfrastructure(abc.ABC):
 
 
 class NullNotificationInfra(NotificationInfrastructure):
+    """
+    何もしない通知インフラストラクチャ
+    """
+
     def send(self, destination: str | list[str], title: str, content: str):
-        logger.info(f"Sending notification to {destination}")
+        pass
 
     def validate_destination(self, destination: str | list[str]):
         pass
@@ -24,6 +28,7 @@ class NullNotificationInfra(NotificationInfrastructure):
 
 class MailNotificationInfra(NotificationInfrastructure):
     def send(self, destination: str | list[str], title: str, content: str):
+        # 具体的なメール送信処理はここでは省略。
         logger.info(f"Sending email to {destination}")
 
     def validate_destination(self, destination: str | list[str]):
