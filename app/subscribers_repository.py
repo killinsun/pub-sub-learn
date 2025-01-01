@@ -49,7 +49,6 @@ class SubscribersRepository:
                     MailSubscriber(
                         event_type=event["event_type"],
                         mail_to=subscriber["notification"]["email_to"],
-                        mail_client=None,
                     )
                 )
 
